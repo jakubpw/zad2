@@ -9,6 +9,9 @@ var session = require('express-session');
 const sqliteStore = require('connect-sqlite3')(session);
 var indexRouter = require('./routes/index');
 var changePasswordRouter = require('./routes/change_password');
+var quizRouter = require('./routes/quiz');
+var resultRouter = require('./routes/result');
+
 var app = express();
 
 // view engine setup
@@ -38,6 +41,8 @@ app.use((req, res, next) => {
 
 app.use('/', indexRouter);
 app.use('/change_password', changePasswordRouter);
+app.use('/quiz', quizRouter);
+app.use('/result', resultRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

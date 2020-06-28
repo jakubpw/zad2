@@ -3,10 +3,25 @@ var router = express.Router();
 
 /* GET home page. */
 router.get('/', function (req, res, next) {
-  res.render('index', {
-    title: 'Quiz',
-    user: req.session.login
-  });
+  if (req.session.login) {
+    req.db.all('SELECT tittle, id FROM quiz', (err, rows) => {
+      if (err) {
+        console.log(err)
+        res.render('error', { message: "Could not get quizzes list" })
+      } else {
+        res.render('index', {
+          title: 'Quiz',
+          user: req.session.login,
+          quizzes: rows
+        })
+      }
+    })
+  } else {
+    res.render('index', {
+      title: 'Quiz',
+      user: req.session.login
+    });
+  }
 });
 
 router.post('/', function (req, res, next) {

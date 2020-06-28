@@ -1,0 +1,195 @@
+interface IQuestion {
+    description: string;
+    result: string;
+    penalty: number;
+    answer: string;
+    time: number;
+};
+interface IQuestions extends Array<IQuestion> { };
+var me = document.querySelector('script[data-questions]');
+let jsonQuestions: string = me.getAttribute('data-questions');
+
+let dataStructure: IQuestions = JSON.parse(jsonQuestions),
+    result = document.querySelector("#result") as HTMLDivElement,
+    el = document.querySelector("#question") as HTMLLabelElement,
+    prevButton = document.querySelector("#prev") as HTMLButtonElement,
+    nextButton = document.querySelector("#next") as HTMLButtonElement,
+    input = document.querySelector("#answer") as HTMLInputElement,
+    startButton = document.querySelector("#start") as HTMLButtonElement,
+    resetButton = document.querySelector("#reset") as HTMLButtonElement,
+    stopButton = document.querySelector("#finish") as HTMLButtonElement,
+    questionnaire = document.querySelector("#questionnaire") as HTMLDivElement,
+    solvePart = document.querySelector("#solvePart") as HTMLDivElement,
+    timerParagraph = document.querySelector("#timer") as HTMLParagraphElement,
+    infoParagraph = document.querySelector("#info") as HTMLParagraphElement,
+    penaltyList = document.querySelector("#penaltyList") as HTMLUListElement,
+    solve = 0, akt = 0, startTimeSec = 0, totalResult = 0,
+    currentSec = 0, currentMin = 0, currentMil = 0, timerOn = false;
+
+for (var i = 0; i < dataStructure.length; i++) {
+    let li = document.createElement('li');
+    penaltyList.appendChild(li);
+    li.innerHTML = "Pytanie " + (i + 1) + " - kara: " + dataStructure[i].penalty + "s.";
+}
+
+function start() {
+    infoParagraph.innerHTML = "Pytanie 1, kara za błędną odpowiedź: "
+        + dataStructure[0].penalty + "s.";
+    timerOn = true;
+    timer();
+    startButton.hidden = true;
+    stopButton.hidden = true;
+    solvePart.hidden = false;
+    input.value = "";
+    prevButton.disabled = true;
+    nextButton.disabled = false;
+    for (var i = 0; i < dataStructure.length; i++) {
+        dataStructure[i].answer = "";
+        dataStructure[i].time = 0;
+    }
+    akt = 0;
+    startTimeSec = 0;
+    solve = 0;
+    el.textContent = dataStructure[akt].description;
+}
+
+function reset() {
+    result.hidden = true;
+    questionnaire.hidden = false;
+    startButton.hidden = false;
+    solvePart.hidden = true;
+    restartTimer();
+}
+
+function change(x: number) {
+    let currentTimeSec = currentSec + currentMin * 60;
+    akt += x;
+
+    if (akt == 0)
+        prevButton.disabled = true;
+    if (akt == dataStructure.length - 2)
+        nextButton.disabled = false;
+    if (akt == dataStructure.length - 1)
+        nextButton.disabled = true;
+    if (akt == 1)
+        prevButton.disabled = false;
+
+    if (dataStructure[akt - x].answer == "" && input.value != "")
+        solve++;
+    if (dataStructure[akt - x].answer != "" && input.value == "")
+        solve--;
+    if (solve == dataStructure.length ||
+        (solve == dataStructure.length - 1 && dataStructure[akt].answer == ""))
+        stopButton.hidden = false;
+    else
+        stopButton.hidden = true;
+
+    dataStructure[akt - x].answer = input.value;
+    dataStructure[akt - x].time += (currentTimeSec - startTimeSec);
+
+    el.textContent = dataStructure[akt].description;
+    input.value = dataStructure[akt].answer;
+    infoParagraph.innerHTML = "Pytanie " + (akt + 1) + ", kara za błędną odpowiedź: "
+        + dataStructure[akt].penalty + "s.";
+    startTimeSec = currentTimeSec;
+}
+
+function check() {
+    if (input.value != "" && (solve == dataStructure.length ||
+        (solve == dataStructure.length - 1 && dataStructure[akt].answer == "")))
+        stopButton.disabled = false;
+    else
+        stopButton.disabled = true;
+}
+
+function finish() {
+    let currentTimeSec = currentSec + currentMin * 60;
+    dataStructure[akt].answer = input.value;
+    dataStructure[akt].time += (currentTimeSec - startTimeSec);
+
+    restartTimer();
+
+    questionnaire.hidden = true;
+    result.hidden = false;
+
+    totalResult = 0;
+    let listElement = document.querySelector("#resultList"),
+        resultParagaph = document.querySelector("#resultParagraph");
+
+    listElement.innerHTML = "";
+
+    dataStructure.forEach(function (item) {
+        totalResult += item.time;
+        totalResult += ((item.answer == item.result) ? 0 : item.penalty);
+        let li = document.createElement('li');
+        listElement.appendChild(li);
+        li.innerHTML += "Równanie: " + item.description + item.result + ". Twoja odpowiedź: "
+            + item.answer + ". Czas: " + item.time + "s. " +
+            ((item.answer == item.result) ? "Ok" : ("Źle, kara: " + item.penalty + "s")) + ".";
+    });
+
+    resultParagaph.innerHTML = "Wynik: " + totalResult + "s.";
+}
+
+function timer() {
+    timerParagraph.hidden = false;
+    infoParagraph.hidden = false;
+
+    if (timerOn) {
+        currentMil++;
+
+        if (currentMil == 10) {
+            currentMil = 0;
+            currentSec += 1;
+        }
+
+        if (currentSec == 60) {
+            currentSec = 0;
+            currentMin += 1;
+        }
+
+        timerParagraph.innerHTML = "Czas rozwiązywania: " + (currentMin < 10 ? "0" : "")
+            + currentMin + ":" + (currentSec < 10 ? "0" : "") + currentSec;
+
+        setTimeout("timer()", 100);
+    }
+    else {
+        timerParagraph.hidden = true;
+        infoParagraph.hidden = true;
+    }
+}
+
+function restartTimer() {
+    timerOn = false;
+    currentSec = 0;
+    currentMin = 0;
+    currentMil = 0;
+}
+
+function saveResult() {
+    var storedResults = [];
+    if (localStorage.getItem("results") != null)
+        storedResults = JSON.parse(localStorage.getItem("results"));
+    storedResults.push(totalResult);
+    localStorage.setItem("results", JSON.stringify(storedResults));
+}
+
+function saveResultAndStats() {
+    var stats = [];
+    dataStructure.forEach(function (item) { stats.push(item.time + ((item.answer == item.result) ? 0 : item.penalty)); });
+    let storedResults = [];
+    if (localStorage.getItem("stats") != null)
+        storedResults = JSON.parse(localStorage.getItem("stats"));
+    storedResults.push({ "result": totalResult, "stats": stats });
+    localStorage.setItem("stats", JSON.stringify(storedResults));
+}
+
+function saveAndReset() {
+    saveResult();
+    reset();
+}
+
+function saveResultAndStatsAndReset() {
+    saveResultAndStats();
+    reset();
+}

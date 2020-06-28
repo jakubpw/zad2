@@ -4,9 +4,15 @@ block content
   h1= title
   if user
     p Witaj #{user} 
-    
+
     a(href="logout") Wyloguj się 
     a(href="change_password") Zmień hasło
+    ol
+      each quiz in quizzes
+        li  
+          p #{quiz.tittle} 
+          a(href="quiz/" + quiz.id) Rozwiąż quiz
+          a(href="result/" + quiz.id) Zobacz swoje wyniki
   else
     p Zaloguj się
     form(method="post")
@@ -14,4 +20,4 @@ block content
       input(type="text" name="login")
       label(for="password") Hasło:
       input(type="password" name="password")
-      input(type="submit", value="In")
+      input(type="submit" value="Zaloguj")
