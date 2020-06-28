@@ -1,0 +1,17 @@
+extends layout
+
+block content
+  h1= title
+  if user
+    p Witaj #{user} 
+    
+    a(href="logout") Wyloguj się 
+    a(href="change_password") Zmień hasło
+  else
+    p Zaloguj się
+    form(method="post")
+      label(for="login") Login:
+      input(type="text" name="login")
+      label(for="password") Hasło:
+      input(type="password" name="password")
+      input(type="submit", value="In")
