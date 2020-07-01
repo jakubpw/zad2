@@ -1,0 +1,27 @@
+extends layout
+
+block content
+    if results.length > 0
+        ol
+            each result in results
+                li  
+                    p Polecenie: #{result.description} 
+                    p Twoja odpowiedź: #{result.answer} Odpowiedź oczekiwana: #{result.result}
+                    if result.result == result.answer
+                        p Odpowiedź ok
+                    else
+                        p Zła odpowiedź. Kara: #{result.penalty}
+                    p Zadanie rozwiązanie w czasie #{result.time} sekundy.  
+    else
+        p Błąd, quiz nie został jeszcze rozwiązany. 
+    if ranking.length > 0 && results.length > 0
+        p Ranking tego quizu:
+        table(style='width:100%', border='1') 
+            tr
+                th Użytkownik 
+                th Wynik
+            each result in ranking
+                tr
+                    td #{result.user_login} 
+                    td #{result.result}    
+    a(href="/") Powrót do wyboru quizów    

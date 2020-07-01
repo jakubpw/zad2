@@ -1,30 +1,29 @@
 extends layout
 
 block content
-    div(class="grid-container")
-        header(class="item1")
-            h1 #{quiz.tittle}
-        main(class="item2") 
-            div(id="questionnaire")
-                p(id="wstęp") #{quiz.description}
-                ul(id = "penaltyList")
-                button(id='start' onclick="start()") Start
-                div(id="solvePart" hidden)
-                    form
-                        label(id='question')
-                        input(oninput="check()" type="text" id = "answer")
-                    button(id='reset' onclick="reset()") Reset 
-                    button(id='prev' onclick="change(-1)" disabled) Poprzednie
-                    button(id='next' onclick="change(1)" disabled) Następne
-                    button(id='finish' onclick="finish()" disabled) Stop
-            div(id="result" hidden) 
-                ul(id="resultList") 
-                p(id="resultParagraph") 
-                button(id='reset2' onclick="reset()") Reset 
-                button(id='reset2' onclick="saveAndReset()") Zapisz i reset
-                button(id='reset2' onclick="saveResultAndStatsAndReset()") Zapisz statystki i reset     
-        aside(class="item3")
-            p(id = "timer" hidden)
-            p(id = "info" hidden) 
-        footer(class="item4") Autor: Jakub Walendowski (jw406397)
-    script(src='/javascripts/main.js' data-questions= questions)                
+    if solve
+        p Quiz został już rozwiązany
+        a(href="/") Powrót do wyboru quizów
+    else
+        div(class="grid-container")
+            header(class="item1")
+                h1 #{quiz.tittle}
+            main(class="item2") 
+                div(id="questionnaire")
+                    p(id="wstęp") #{quiz.description}
+                    ul(id = "penaltyList")
+                    button(id='start' onclick="start()") Start
+                    div(id="solvePart" hidden)
+                        form
+                            label(id='question')
+                            input(oninput="check()" type="text" id = "answer")
+                        button(id='prev' onclick="change(-1)" disabled) Poprzednie
+                        button(id='next' onclick="change(1)" disabled) Następne
+                        form(method="post" id="stopForm")
+                            input(type="hidden" id ="results" name="results")
+                            button(type="button" onclick="finishuj()" id='finish' disabled) Stop   
+            aside(class="item3")
+                p(id = "timer" hidden)
+                p(id = "info" hidden) 
+            footer(class="item4") Autor: Jakub Walendowski (jw406397)
+        script(src='/javascripts/main.js' data-questions= questions)                

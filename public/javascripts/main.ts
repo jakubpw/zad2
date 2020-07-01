@@ -1,9 +1,11 @@
 interface IQuestion {
+    question_id: string;
     description: string;
     result: string;
     penalty: number;
     answer: string;
     time: number;
+    correct: boolean;
 };
 interface IQuestions extends Array<IQuestion> { };
 var me = document.querySelector('script[data-questions]');
@@ -23,6 +25,8 @@ let dataStructure: IQuestions = JSON.parse(jsonQuestions),
     timerParagraph = document.querySelector("#timer") as HTMLParagraphElement,
     infoParagraph = document.querySelector("#info") as HTMLParagraphElement,
     penaltyList = document.querySelector("#penaltyList") as HTMLUListElement,
+    results = document.querySelector("#results") as HTMLInputElement,
+    stopForm = document.querySelector("#stopForm") as HTMLFormElement,
     solve = 0, akt = 0, startTimeSec = 0, totalResult = 0,
     currentSec = 0, currentMin = 0, currentMil = 0, timerOn = false;
 
@@ -51,14 +55,6 @@ function start() {
     startTimeSec = 0;
     solve = 0;
     el.textContent = dataStructure[akt].description;
-}
-
-function reset() {
-    result.hidden = true;
-    questionnaire.hidden = false;
-    startButton.hidden = false;
-    solvePart.hidden = true;
-    restartTimer();
 }
 
 function change(x: number) {
@@ -102,33 +98,14 @@ function check() {
         stopButton.disabled = true;
 }
 
-function finish() {
+function finishuj() {
     let currentTimeSec = currentSec + currentMin * 60;
     dataStructure[akt].answer = input.value;
     dataStructure[akt].time += (currentTimeSec - startTimeSec);
 
     restartTimer();
-
-    questionnaire.hidden = true;
-    result.hidden = false;
-
-    totalResult = 0;
-    let listElement = document.querySelector("#resultList"),
-        resultParagaph = document.querySelector("#resultParagraph");
-
-    listElement.innerHTML = "";
-
-    dataStructure.forEach(function (item) {
-        totalResult += item.time;
-        totalResult += ((item.answer == item.result) ? 0 : item.penalty);
-        let li = document.createElement('li');
-        listElement.appendChild(li);
-        li.innerHTML += "Równanie: " + item.description + item.result + ". Twoja odpowiedź: "
-            + item.answer + ". Czas: " + item.time + "s. " +
-            ((item.answer == item.result) ? "Ok" : ("Źle, kara: " + item.penalty + "s")) + ".";
-    });
-
-    resultParagaph.innerHTML = "Wynik: " + totalResult + "s.";
+    results.value = JSON.stringify(dataStructure);
+    stopForm.submit();
 }
 
 function timer() {
@@ -164,32 +141,4 @@ function restartTimer() {
     currentSec = 0;
     currentMin = 0;
     currentMil = 0;
-}
-
-function saveResult() {
-    var storedResults = [];
-    if (localStorage.getItem("results") != null)
-        storedResults = JSON.parse(localStorage.getItem("results"));
-    storedResults.push(totalResult);
-    localStorage.setItem("results", JSON.stringify(storedResults));
-}
-
-function saveResultAndStats() {
-    var stats = [];
-    dataStructure.forEach(function (item) { stats.push(item.time + ((item.answer == item.result) ? 0 : item.penalty)); });
-    let storedResults = [];
-    if (localStorage.getItem("stats") != null)
-        storedResults = JSON.parse(localStorage.getItem("stats"));
-    storedResults.push({ "result": totalResult, "stats": stats });
-    localStorage.setItem("stats", JSON.stringify(storedResults));
-}
-
-function saveAndReset() {
-    saveResult();
-    reset();
-}
-
-function saveResultAndStatsAndReset() {
-    saveResultAndStats();
-    reset();
 }
